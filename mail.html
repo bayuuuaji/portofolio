@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- The above 4 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <!-- Title -->
+    <title>MAIL SERVER</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="img/core-img/favicon.ico">
+
+    <!-- Core Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+
+
+        <!-- Receipe Content Area -->
+        <div class="receipe-content-area">
+            <div class="container">
+
+                <div class="row">
+                    <div class="col-12 col-md-8">
+                        <div class="receipe-headline my-5">
+                        
+                            <font size="7" face="Berlin Sans FB Demi"><center>Install Postfix</center></font><br>
+                            <div class="receipe-duration">
+                                <h6>Postfix adalah aplikasi yang berfungsi sebagai layanan smtp yang berjalan pada port 25 . SMTP berfungsi untuk mengirimkan email lokal ke server, barulah server akan mengirim kepada penerima (pop3,imap). Singkatnya buat ngirim email lah.</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 col-lg-8">
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <br><h4>01.</h4>
+                            <img src="img/1.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>02.</h4>
+                            <img src="img/2.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>03.</h4>
+                            <p>Menuju ke baris "83" pada kata "mydomain =". Uncommand atau buang tanda pagar dan masukkan domain utama dari Mail Server.
+</p>
+<img src="img/3.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>04.</h4>
+                            <p>. Lalu ke baris "75" pada kata "myhostname =". Uncommand dan masukkan domain dari mail server.
+</p>
+<img src="img/4.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>05.</h4>
+                            <p>Menuju ke baris "99" pada kata "myorigin =". Uncommand dan isikan string domain kita.
+</p>
+<img src="img/5.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>06.</h4>
+                            <p>Menuju ke baris "116" pada kata "inet_interfaces". Ganti kata localhost itu dengan "all".
+</p>
+<img src="img/6.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>07.</h4>
+                            <p>Menuju ke baris "164" dan pada kata "mydestination =". Uncommand dan tambagkan string domain.
+</p>
+<img src="img/7.png">
+                        </div>
+<!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>08.</h4>
+                            <p>menuju ke baris "264" pada kata "mynetworks =". Uncommand dan isikan NETWORK anda. </p>
+<img src="img/8.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>09.</h4>
+                            <p>Lagi, menuju ke baris "419" pada kata "home_mailbox =". Uncommand dan isikan direktori mail nya.
+</p>
+<img src="img/9.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>10.</h4>
+                            <p>Ke baris "574" pada kata "smtpd_banner =" lalu isikan string hostname dan ESMTP.
+</p>
+<img src="img/10.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>11.</h4>
+                            <p>. Last.. Menuju ke baris terbawah dari file tersebut. Dan isikan skrip berikut ini....
+</p>
+<img src="img/11.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>12.</h4>
+                            <p>Lalu kita mulai dan jalankan postfixnya.
+</p>
+<img src="img/12.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>13.</h4>
+                            <p>Kita daftarkan smtp ke firewall agar client dapat menggunakan protocol smtp lewat server ini. Dan kita restart Firewall nya.
+</p>
+<img src="img/13.png">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- anyar -->
+        <!-- Receipe Content Area -->
+        <div class="receipe-content-area">
+            <div class="container">
+
+                <div class="row">
+                    <div class="col-12 col-md-8">
+                        <div class="receipe-headline my-5">
+                        
+                            <font size="7" face="Berlin Sans FB Demi"><center>Install Dovecot</center></font><br>
+                            <div class="receipe-duration">
+                                <h6>Dovecot adalah aplikasi untuk menjalankan protocol imap, dan pop3. IMAP adalah protokol 2 arah yang berarti bila si penerima membuka email, maka data emailnya akan dibuka dari server tanpa memindahkan data email tersebut ke perangkat nya (cuman buka aja).</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 col-lg-8">
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <br><h4>01.</h4>
+                            <img src="img/1.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>02.</h4>
+                            <img src="img/2.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>03.</h4>
+                            <p> Menuju ke baris "24" pada kata "protocols". Kita uncommand.
+</p>
+<img src="img/3.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>04.</h4>
+                            <p>. Menuju baris "30" pada kata "listen". Kita uncommand dan hanya mengisi "*". Lalu simpan dan keluar.
+</p>
+<img src="img/4.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>05.</h4>
+                            <p>Kita edit lagi pada konfigurasi dovecot. yaitu pada 10-auth.conf.
+</p>
+<img src="img/5.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>06.</h4>
+                            <p>edit pada baris "10" pada kata "disable_plaintext". Kita uncommand dan ganti kata "yes" dengan "no".
+</p>
+<img src="img/6.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>07.</h4>
+                            <p>menuju kebaris "100" pada kata "auth_mechanism", Kita tambahkan kata "login" diakhir opsi.
+</p>
+<img src="img/7.jpg">
+                        </div>
+<!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>08.</h4>
+                            <p>Kita edit lagi di file lain. dengan nama file 10-mail.conf </p>
+<img src="img/8.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>09.</h4>
+                            <p>Menuju kebaris "30" pada kata "mail_location". Kita isi dengan direktori "maildir:~/Maildir".
+</p>
+<img src="img/9.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>10.</h4>
+                            <p>MENUJU KE FILE LAIN. Yaitu file 10-master.conf.
+</p>
+<img src="img/10.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>11.</h4>
+                            <p>. Menuju kebaris "96" kita akan edit sedikit pada zona ini.
+</p>
+<img src="img/11.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>12.</h4>
+                            <p>Buka file "10-ssl.conf".
+</p>
+<img src="img/12.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>13.</h4>
+                            <p>Menuju ke baris "8" pada kata "ssl =". Kita isikan "no"
+</p>
+<img src="img/13.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>14.</h4>
+                            <p>Restart aplikasi dovecot dan jalankan (enable).
+</p>
+<img src="img/14.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>15.</h4>
+                            <p>Tambahkan firewall
+</p>
+<img src="img/15.jpg">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>16.</h4>
+                            <p>Menambahkan User Mail
+</p>
+<img src="img/16.jpg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- s -->
+<!-- Receipe Content Area -->
+        <div class="receipe-content-area">
+            <div class="container">
+
+                <div class="row">
+                    <div class="col-12 col-md-8">
+                        <div class="receipe-headline my-5">
+                        
+                            <font size="7" face="Berlin Sans FB Demi"><center>Pengujian</center></font><br>
+                            <div class="receipe-duration">
+                                <h6>Uji Coba pada Client Windows 10</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 col-lg-8">
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <br><h4>01.</h4>
+                            <p>Saya menggunakan aplikasi putty, dan sudah terkoneksi dengan server saya.
+</p>
+<img src="img/100.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>02.</h4>
+                            <p>LALU KETIK INI.... JANGAN SAMPE SALAH 
+ </p>
+ <img src="img/200.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>03.</h4>
+                            <p>Lalu kita akan buka email tersebut.
+</p>
+<img src="img/300.png">
+                        </div>
+                        <!-- Single Preparation Step -->
+                        <div class="single-preparation-step d-flex">
+                            <h4>04.</h4>
+                            <p>Masukkan user yang tadi telah di kirimi email
+</p>
+<img src="img/400.png">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ##### Footer Area Start ##### -->
+
+    <!-- ##### All Javascript Files ##### -->
+    <!-- jQuery-2.2.4 js -->
+    <script src="js/jquery/jquery-2.2.4.min.js"></script>
+    <!-- Popper js -->
+    <script src="js/bootstrap/popper.min.js"></script>
+    <!-- Bootstrap js -->
+    <script src="js/bootstrap/bootstrap.min.js"></script>
+    <!-- All Plugins js -->
+    <script src="js/plugins/plugins.js"></script>
+    <!-- Active js -->
+    <script src="js/active.js"></script>
+</body>
+
+</html>
