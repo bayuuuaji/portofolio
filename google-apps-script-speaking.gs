@@ -18,6 +18,23 @@ function doPost(e) {
   return jsonResponse({ ok: false, error: 'Unknown action' });
 }
 
+function authorizeSpeakingBackend() {
+  const sheet = getSheet();
+  const testFile = DriveApp.createFile(
+    Utilities.newBlob('authorization check', 'text/plain', `speaking-auth-check-${Date.now()}.txt`)
+  );
+  testFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  testFile.setTrashed(true);
+
+  const response = UrlFetchApp.fetch('https://api.kie.ai', { muteHttpExceptions: true });
+  return {
+    ok: true,
+    sheet: sheet.getName(),
+    drive: 'authorized',
+    urlFetchStatus: response.getResponseCode()
+  };
+}
+
 function scoreSpeakingWithGemini(payload) {
   const keys = getKieApiKeys();
   const localFallback = payload.localResult || zeroResult('missing api key');
