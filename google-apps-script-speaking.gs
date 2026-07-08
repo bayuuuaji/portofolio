@@ -417,19 +417,7 @@ function normalizeSpeakingScore(score) {
       vocabulary: clamp(criteria.vocabulary, 0, 15),
       communicationStrategy: clamp(criteria.communicationStrategy, 0, 10)
     },
-    taskScores: Array.isArray(score.taskScores) ? score.taskScores.map((task) => ({
-      id: String(task.id || ''),
-      score: clamp(task.score, 0, 20),
-      transcript: String(task.transcript || ''),
-      note: String(task.note || ''),
-      good: String(task.good || ''),
-      correction: String(task.correction || ''),
-      grammarFix: String(task.grammarFix || ''),
-      pronunciationFix: String(task.pronunciationFix || ''),
-      betterAnswer: String(task.betterAnswer || ''),
-      scoreReason: String(task.scoreReason || ''),
-      isZero: Boolean(task.isZero)
-    })) : [],
+    taskScores: Array.isArray(score.taskScores) ? score.taskScores.map((task) => normalizeTaskScore({ id: task.id }, task)) : [],
     strengths: Array.isArray(score.strengths) ? score.strengths.slice(0, 3) : [],
     improvements: Array.isArray(score.improvements) ? score.improvements.slice(0, 3) : [],
     teacherNote: String(score.teacherNote || ''),
