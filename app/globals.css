@@ -1,0 +1,290 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+html.has-section-pager,
+html.has-section-pager body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  @apply bg-base-off text-navy font-body antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+main {
+  transform-origin: center top;
+  will-change: opacity, transform, filter;
+}
+
+main > section {
+  scroll-margin-top: 80px;
+}
+
+.section-pager-slide {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(72px) rotateY(-8deg) scale(0.985);
+  transform-origin: center;
+  filter: blur(10px);
+  scrollbar-width: thin;
+  scrollbar-color: rgb(43 77 255 / 0.5) transparent;
+  will-change: opacity, transform, filter;
+}
+
+.section-pager-slide[data-state="active"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  z-index: 2;
+}
+
+.section-pager-slide[data-state="outgoing"] {
+  opacity: 0;
+  z-index: 1;
+}
+
+.section-pager-slide[data-direction="1"][data-state="active"] {
+  animation: pageSwipeInFromRight 1.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.section-pager-slide[data-direction="1"][data-state="outgoing"] {
+  animation: pageSwipeOutToLeft 1.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.section-pager-slide[data-direction="-1"][data-state="active"] {
+  animation: pageSwipeInFromLeft 1.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.section-pager-slide[data-direction="-1"][data-state="outgoing"] {
+  animation: pageSwipeOutToRight 1.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageSwipeInFromRight {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateX(92px) rotateY(-10deg) scale(0.975);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+}
+
+@keyframes pageSwipeOutToLeft {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    filter: blur(14px);
+    transform: translateX(-86px) rotateY(9deg) scale(0.975);
+  }
+}
+
+@keyframes pageSwipeInFromLeft {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateX(-92px) rotateY(10deg) scale(0.975);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+}
+
+@keyframes pageSwipeOutToRight {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    filter: blur(14px);
+    transform: translateX(86px) rotateY(-9deg) scale(0.975);
+  }
+}
+
+/* Visible keyboard focus everywhere */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #2b4dff;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Signature texture: a faint blueprint dot-grid used behind hero / section dividers.
+   Represents the "systems builder" side of the brand without being loud. */
+.blueprint-grid {
+  background-image: radial-gradient(#c7d4f5 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to bottom, black, transparent);
+}
+
+.eyebrow {
+  @apply font-mono text-xs tracking-[0.18em] uppercase text-electric;
+}
+
+.section-container {
+  @apply mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-10;
+}
+
+.portfolio-highlight {
+  color: #1f46ff;
+  font-weight: 950;
+}
+
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -4px;
+  height: 2px;
+  background: #2b4dff;
+  transition: right 0.25s ease;
+}
+.nav-underline:hover::after,
+.nav-underline[data-active="true"]::after {
+  right: 0;
+}
+
+.dark body,
+.dark .bg-base-off {
+  background-color: #09101f;
+}
+
+.dark .bg-white,
+.dark .bg-white\/80,
+.dark .bg-white\/95 {
+  background-color: rgb(13 22 39 / var(--tw-bg-opacity, 1));
+}
+
+.dark .bg-grad-sky {
+  background-image: linear-gradient(135deg, #101d33 0%, #09101f 58%, #0d1627 100%);
+}
+
+.dark .bg-electric-50 {
+  background-color: rgb(43 77 255 / 0.14);
+}
+
+.dark .border-line,
+.dark .border-white\/15,
+.dark .border-white\/20 {
+  border-color: rgb(129 151 190 / 0.24);
+}
+
+.dark .text-navy,
+.dark .text-navy-soft,
+.dark .text-navy-soft\/85,
+.dark .text-navy-soft\/80,
+.dark .text-navy-soft\/70,
+.dark .text-navy-soft\/60 {
+  color: rgb(230 236 248 / var(--tw-text-opacity, 1));
+}
+
+.dark .text-navy-soft\/85 {
+  color: rgb(230 236 248 / 0.85);
+}
+
+.dark .text-navy-soft\/80 {
+  color: rgb(230 236 248 / 0.8);
+}
+
+.dark .text-navy-soft\/70 {
+  color: rgb(230 236 248 / 0.7);
+}
+
+.dark .text-navy-soft\/60 {
+  color: rgb(230 236 248 / 0.6);
+}
+
+.dark .hover\:text-navy:hover {
+  color: rgb(230 236 248 / 1);
+}
+
+.dark .hover\:text-electric:hover {
+  color: #8fb3ff;
+}
+
+.dark .hover\:bg-base-off:hover,
+.dark .hover\:bg-skyline-light:hover {
+  background-color: rgb(18 30 52 / 1);
+}
+
+.dark .bg-electric\/20 {
+  background-color: rgb(43 77 255 / 0.28);
+}
+
+.dark .border-electric\/60 {
+  border-color: rgb(143 179 255 / 0.72);
+}
+
+.dark .portfolio-highlight {
+  color: #8fb3ff;
+}
+
+.dark .section-pager > .absolute.bottom-5 {
+  background-color: rgb(13 22 39 / 0.92);
+  border-color: rgb(129 151 190 / 0.34);
+}
+
+.dark .section-pager > .absolute.bottom-5 button:first-child {
+  background-color: rgb(18 30 52 / 1);
+  color: rgb(230 236 248 / 0.92);
+  border-color: rgb(129 151 190 / 0.3);
+}
+
+.dark .section-pager > .absolute.bottom-5 button:first-child:hover {
+  color: #8fb3ff;
+  border-color: #8fb3ff;
+}
+
+.dark .shadow-soft,
+.dark .shadow-softer {
+  box-shadow: 0 18px 36px -18px rgb(0 0 0 / 0.5);
+}
+
+.dark .blueprint-grid {
+  background-image: radial-gradient(rgb(143 179 255 / 0.34) 1px, transparent 1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
