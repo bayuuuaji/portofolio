@@ -1,0 +1,4 @@
+User-Agent: *
+Allow: /
+
+Sitemap: https://bayuuuaji.github.io/portofolio/sitemap.xml
