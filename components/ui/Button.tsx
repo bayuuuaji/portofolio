@@ -10,6 +10,7 @@ type ButtonProps = {
   className?: string;
   showArrow?: boolean;
   external?: boolean;
+  download?: boolean | string;
   type?: "button" | "submit";
   ariaLabel?: string;
 };
@@ -31,6 +32,7 @@ export default function Button({
   className = "",
   showArrow = false,
   external = false,
+  download,
   type = "button",
   ariaLabel,
 }: ButtonProps) {
@@ -51,6 +53,19 @@ export default function Button({
   );
 
   if (href) {
+    if (download) {
+      return (
+        <a
+          href={href}
+          download={download}
+          className={classes}
+          aria-label={ariaLabel}
+        >
+          {content}
+        </a>
+      );
+    }
+
     if (external) {
       return (
         <a

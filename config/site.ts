@@ -8,7 +8,7 @@ export const siteConfig = {
     "I build content, campaigns, and digital systems that help creative teams grow and work better.",
   url: "https://bayuuuaji.github.io/portofolio",
   ogImage: "https://bayuuuaji.github.io/portofolio/images/og-cover.svg",
-  resumeUrl: "/bayu-resume.pdf",
+  resumeUrl: "/images/CV - Bayu Aji Santoso.pdf",
   navLinks: [
     { label: "About", href: "#about" },
     { label: "Experience", href: "#experience" },

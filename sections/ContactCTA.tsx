@@ -1,9 +1,10 @@
 import Image from "next/image";
-import { Instagram, Linkedin, MessageCircle } from "lucide-react";
+import { Download, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import Container from "@/components/ui/Container";
 import SectionHeading from "@/components/ui/SectionHeading";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import Button from "@/components/ui/Button";
+import { siteConfig } from "@/config/site";
 import { contactConfig, whatsappLink } from "@/config/contact";
 import { publicAsset } from "@/lib/assetPath";
 
@@ -52,6 +53,15 @@ export default function ContactCTA() {
                   </Button>
                 </div>
               </div>
+              <Button
+                href={publicAsset(siteConfig.resumeUrl)}
+                variant="secondary"
+                download="CV - Bayu Aji Santoso.pdf"
+                className="mt-3 w-full"
+              >
+                <Download className="h-4 w-4" aria-hidden="true" />
+                Download CV
+              </Button>
             </div>
 
             <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
