@@ -1,9 +1,13 @@
 const SHEET_NAME = 'Speaking Level Check';
 const KIE_CHAT_COMPLETIONS_URL = 'https://api.kie.ai/gemini-2.5-flash/v1/chat/completions';
+const SPEAKING_AUDIO_RETENTION_DAYS = 1;
+const SPEAKING_ARTIFACT_RETENTION_DAYS = 30;
+const SPEAKING_ARTIFACT_FOLDER_NAME = 'Speaking Level Check Artifacts';
 const HEADERS = [
   'timestamp', 'name', 'whatsapp', 'social_media_account', 'followers_range', 'age', 'status',
   'score', 'level', 'task_response', 'fluency_coherence', 'pronunciation',
-  'grammar', 'vocabulary', 'communication_strategy', 'zero_tasks', 'teacher_note'
+  'grammar', 'vocabulary', 'communication_strategy', 'zero_tasks', 'teacher_note',
+  'certificate_url', 'full_report_pdf_url', 'artifact_expires_at'
 ];
 
 function doPost(e) {
@@ -12,8 +16,10 @@ function doPost(e) {
     return jsonResponse({ ok: true, speakingScore: scoreSpeakingWithGemini(payload) });
   }
   if (payload.action === 'saveSpeakingResult') {
-    saveSpeakingResult(payload);
-    return jsonResponse({ ok: true });
+    return jsonResponse({ ok: true, resultSave: saveSpeakingResult(payload) });
+  }
+  if (payload.action === 'saveSpeakingArtifacts') {
+    return jsonResponse({ ok: true, artifacts: saveSpeakingArtifacts(payload) });
   }
   return jsonResponse({ ok: false, error: 'Unknown action' });
 }
@@ -39,7 +45,7 @@ function scoreSpeakingWithGemini(payload) {
   const keys = getKieApiKeys();
   const localFallback = payload.localResult || zeroResult('missing api key');
   if (!keys.length) return localFallback;
-  cleanupOldSpeakingAudioFiles();
+  cleanupOldSpeakingFiles();
 
   const tasks = (payload.tasks || []).map((task) => ({
     id: String(task.id || ''),
@@ -67,8 +73,8 @@ function scoreSpeakingWithGemini(payload) {
     fallback.debug = {
       message: String(error.message || error),
       body: String(error.body || '').slice(0, 1000),
-      publicAudioUrl: error.publicAudioUrl || '',
-      publicAudioFileId: error.publicAudioFileId || ''
+      audioFormat: error.audioFormat || '',
+      mimeType: error.mimeType || ''
     };
     return fallback;
   }
@@ -99,10 +105,23 @@ function scoreSingleTaskWithGemini(keyState, task) {
     'Important zero-score rule: if this task has silent audio, mostly noise, non-speech, or the learner says almost nothing meaningful, score must be 0 and must not be guessed from the prompt.',
     'Do not reward reading the prompt silently. Score only audible spoken English.',
     'For picture description tasks, use imageContext as the reference for what the learner was looking at. Do not assume a different picture.',
-    'Give score as a raw 0-20 task score. Also give criteriaPercent values from 0-100 for taskResponse, fluencyCoherence, pronunciation, grammar, vocabulary, and communicationStrategy.',
+    'Use a stricter placement rubric. Do not be generous just because the answer is understandable.',
+    'Rubric weights for overall scoring are: content/relevance via taskResponse 10%, fluencyCoherence 25%, pronunciation 25%, grammar 20%, vocabulary 20%. communicationStrategy is a legacy field and must not inflate the overall score.',
+    'Answer length is evidence, not a score by itself. However, very short answers cannot receive high scores because there is not enough evidence of speaking ability.',
+    'For productive tasks (self introduction, daily life, picture description, opinion), content/relevance is a gatekeeper. Pronunciation or fluency must not rescue a short, vague, off-topic, or nonsense answer.',
+    'Strict cap rules for productive tasks: silence/no meaningful English = 0; 1-3 English words = max 20/100; one very short sentence = max 35/100; 1-2 short/simple sentences with little detail = max 45/100; two simple but relevant sentences = max 50/100; vague/general answer with no specific details = max 55/100; mostly understandable but very basic grammar/vocabulary = max 60/100; repeated basic grammar errors = max 60/100; many fillers, long pauses, or broken flow = max 65/100; incomplete or partly off-topic answer = max 45/100; clearly off-topic/ngawur answer = max 30/100.',
+    'If taskResponse is below 40%, displayed score must be max 45 no matter how clear the pronunciation is. If taskResponse is below 30%, displayed score must be max 35. If taskResponse is below 20%, displayed score must be max 25.',
+    'If the answer is only 1-2 sentences and does not directly answer the prompt, score it around 20-35, not 50+.',
+    '70+ is only for answers that are clear, sufficiently developed, relevant, reasonably fluent, and fairly stable in grammar and pronunciation. 80+ requires natural delivery, enough detail, varied vocabulary, and only minor errors. 90+ requires very natural, accurate, well-structured speaking with minimal issues.',
+    'Advanced vocabulary is not required for a good score. Precise, natural, and varied vocabulary matters more. Advanced words used incorrectly should reduce vocabulary and/or grammar.',
+    'For read-aloud and repeat-sentence tasks, content/relevance can be high if the expected text is attempted, but the raw score must still depend mainly on pronunciation, fluency, rhythm, intonation, and accuracy.',
+    'Give score as a raw 0-20 task score that matches the strict 0-100 judgement divided by 5. Example: 60/100 -> score 12, 70/100 -> score 14, 85/100 -> score 17.',
+    'Also give criteriaPercent values from 0-100 for taskResponse, fluencyCoherence, pronunciation, grammar, vocabulary, and communicationStrategy. Set communicationStrategy to 0 unless you have a specific strategy observation.',
+    'If the displayed score is below 100, every feedback must explain the remaining gap clearly. Do not write "no meaningful mistake" as the only correction for a score below 100. Mention the specific reason: stress, intonation, rhythm, connected speech, pace control, consistency, minor pronunciation clarity, or confidence.',
+    'For scores 85-95, the feedback should say that the answer is strong, but still explain what kept it from 100 in a specific and understandable way.',
     'Write all human-facing feedback in friendly, casual Bahasa Indonesia using "kamu", not "Anda". Keep transcript exactly as spoken.',
     'Tone: Gen-Z friendly, fun, supportive, and clear, like a helpful speaking coach. Use phrases such as "ini udah oke", "next kamu bisa...", "biar makin natural", "bagian ini perlu dipoles", but do not overdo slang and do not use emojis.',
-    'Give constructive, answer-specific feedback. Do not use generic template feedback. Mention what was good from the learner answer, what was wrong or unclear, how to correct grammar, how to correct pronunciation if you hear a mispronunciation, a better/natural sentence example, and why the task got that score.',
+    'Give constructive, answer-specific feedback. Do not use generic template feedback. Mention what was good from the learner answer, what was wrong or unclear, how to correct grammar, how to correct pronunciation if you hear a mispronunciation, a better/natural sentence example, and why the task got that score. In scoreReason, explain the displayed 0-100 score, not only the raw 0-20 score.',
     'For grammarFix and pronunciationFix, write short separate correction sentences, not one long paragraph. Example: "Seharusnya ... (bukan ...)." "Next, pakai ... biar lebih natural."',
     'If pronunciation cannot be judged confidently, set pronunciationFix to "Tidak ada koreksi pronunciation spesifik yang terdengar jelas." Do not invent word-level pronunciation errors.',
     'Use encouraging but honest wording. Avoid stiff examiner language, avoid "peserta", "pembelajar", and avoid formal words like "Anda".',
@@ -149,7 +168,7 @@ function callKieWithBackupKeys(keyState, prompt, task) {
 }
 
 function callKieOnce(key, prompt, task) {
-  const publicAudio = createPublicAudioFile(task);
+  const audioFormat = getAudioFormat(task.mimeType);
   try {
     const response = UrlFetchApp.fetch(KIE_CHAT_COMPLETIONS_URL, {
       method: 'post',
@@ -162,8 +181,11 @@ function callKieOnce(key, prompt, task) {
           content: [
             { type: 'text', text: prompt },
             {
-              type: 'image_url',
-              image_url: { url: publicAudio.url }
+              type: 'input_audio',
+              input_audio: {
+                data: task.audioBase64,
+                format: audioFormat
+              }
             }
           ]
         }],
@@ -210,8 +232,8 @@ function callKieOnce(key, prompt, task) {
       const error = new Error(`Kie API error ${response.getResponseCode()}: ${response.getContentText().slice(0, 500)}`);
       error.status = response.getResponseCode();
       error.body = response.getContentText();
-      error.publicAudioUrl = publicAudio.url;
-      error.publicAudioFileId = publicAudio.fileId;
+      error.audioFormat = audioFormat;
+      error.mimeType = task.mimeType;
       throw error;
     }
     const body = JSON.parse(response.getContentText());
@@ -220,16 +242,26 @@ function callKieOnce(key, prompt, task) {
       const error = new Error(`Kie API returned no scoring candidate: ${response.getContentText().slice(0, 500)}`);
       error.status = 502;
       error.body = response.getContentText();
-      error.publicAudioUrl = publicAudio.url;
-      error.publicAudioFileId = publicAudio.fileId;
+      error.audioFormat = audioFormat;
+      error.mimeType = task.mimeType;
       throw error;
     }
     return normalizeTaskScore(task, parseModelJson(text));
   } catch (error) {
-    error.publicAudioUrl = error.publicAudioUrl || publicAudio.url;
-    error.publicAudioFileId = error.publicAudioFileId || publicAudio.fileId;
+    error.audioFormat = error.audioFormat || audioFormat;
+    error.mimeType = error.mimeType || task.mimeType;
     throw error;
   }
+}
+
+function getAudioFormat(mimeType) {
+  const type = String(mimeType || '').toLowerCase();
+  if (type.includes('wav')) return 'wav';
+  if (type.includes('mp3') || type.includes('mpeg')) return 'mp3';
+  if (type.includes('mp4') || type.includes('m4a') || type.includes('aac')) return 'mp4';
+  if (type.includes('ogg')) return 'ogg';
+  if (type.includes('webm')) return 'webm';
+  return 'wav';
 }
 
 function createPublicAudioFile(task) {
@@ -258,7 +290,7 @@ function cleanupPublicAudioFile(fileId) {
 
 function cleanupOldSpeakingAudioFiles() {
   try {
-    const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+    const cutoff = Date.now() - audioRetentionMs();
     const files = DriveApp.searchFiles("title contains 'speaking-' and trashed = false");
     while (files.hasNext()) {
       const file = files.next();
@@ -267,6 +299,118 @@ function cleanupOldSpeakingAudioFiles() {
   } catch (error) {
     console.warn(`Failed to cleanup old speaking audio files: ${error}`);
   }
+}
+
+function saveSpeakingArtifacts(payload) {
+  cleanupOldSpeakingFiles();
+  const user = payload.user || {};
+  const artifacts = payload.artifacts || {};
+  const folder = getSpeakingArtifactFolder();
+  const safeName = sanitizeFilename(user.name || 'peserta');
+  const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd-HHmmss');
+  const saved = {};
+
+  if (artifacts.certificatePng) {
+    saved.certificateUrl = saveDataUrlFile(
+      folder,
+      artifacts.certificatePng,
+      `speaking-certificate-${safeName}-${stamp}.png`
+    );
+  }
+
+  if (artifacts.fullReportPdf) {
+    saved.fullReportPdfUrl = saveDataUrlFile(
+      folder,
+      artifacts.fullReportPdf,
+      `speaking-full-report-${safeName}-${stamp}.pdf`
+    );
+  }
+
+  saved.expiresAt = new Date(Date.now() + artifactRetentionMs()).toISOString();
+  if (payload.rowNumber) updateSpeakingArtifactLinks(payload.rowNumber, saved);
+  return saved;
+}
+
+function updateSpeakingArtifactLinks(rowNumber, artifacts) {
+  const row = Number(rowNumber);
+  if (!Number.isFinite(row) || row < 2) return false;
+  const sheet = getSheet();
+  const headers = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0].map(String);
+  const updates = {
+    certificate_url: artifacts.certificateUrl,
+    full_report_pdf_url: artifacts.fullReportPdfUrl,
+    artifact_expires_at: artifacts.expiresAt
+  };
+
+  Object.keys(updates).forEach(header => {
+    if (!updates[header]) return;
+    const index = headers.indexOf(header);
+    if (index !== -1) sheet.getRange(row, index + 1).setValue(updates[header]);
+  });
+  return true;
+}
+
+function saveDataUrlFile(folder, dataUrl, name) {
+  const match = String(dataUrl || '').match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error('Invalid artifact data URL.');
+  const blob = Utilities.newBlob(Utilities.base64Decode(match[2]), match[1], name);
+  const file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return file.getUrl();
+}
+
+function getSpeakingArtifactFolder() {
+  const folders = DriveApp.getFoldersByName(SPEAKING_ARTIFACT_FOLDER_NAME);
+  return folders.hasNext() ? folders.next() : DriveApp.createFolder(SPEAKING_ARTIFACT_FOLDER_NAME);
+}
+
+function cleanupOldSpeakingFiles() {
+  cleanupOldSpeakingAudioFiles();
+  cleanupOldSpeakingArtifacts();
+}
+
+function cleanupOldSpeakingArtifacts() {
+  try {
+    const cutoff = Date.now() - artifactRetentionMs();
+    const folders = DriveApp.getFoldersByName(SPEAKING_ARTIFACT_FOLDER_NAME);
+    while (folders.hasNext()) {
+      const files = folders.next().getFiles();
+      while (files.hasNext()) {
+        const file = files.next();
+        if (file.getDateCreated().getTime() < cutoff) file.setTrashed(true);
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to cleanup old speaking artifacts: ${error}`);
+  }
+}
+
+function installSpeakingCleanupTrigger() {
+  ScriptApp.getProjectTriggers()
+    .filter((trigger) => trigger.getHandlerFunction() === 'cleanupOldSpeakingFiles')
+    .forEach((trigger) => ScriptApp.deleteTrigger(trigger));
+  ScriptApp.newTrigger('cleanupOldSpeakingFiles').timeBased().everyDays(1).atHour(3).create();
+  return {
+    ok: true,
+    audioRetentionDays: SPEAKING_AUDIO_RETENTION_DAYS,
+    artifactRetentionDays: SPEAKING_ARTIFACT_RETENTION_DAYS
+  };
+}
+
+function audioRetentionMs() {
+  return SPEAKING_AUDIO_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+}
+
+function artifactRetentionMs() {
+  return SPEAKING_ARTIFACT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+}
+
+function sanitizeFilename(value) {
+  return String(value || 'peserta')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'peserta';
 }
 
 function parseModelJson(text) {
@@ -295,14 +439,13 @@ function isRetryableKieError(error) {
 function buildSpeakingResultFromTasks(taskScores) {
   const totalTasks = Math.max(taskScores.length, 1);
   const maxCriteria = {
-    taskResponse: 20,
-    fluencyCoherence: 20,
-    pronunciation: 20,
-    grammar: 15,
-    vocabulary: 15,
-    communicationStrategy: 10
+    taskResponse: 10,
+    fluencyCoherence: 25,
+    pronunciation: 25,
+    grammar: 20,
+    vocabulary: 20
   };
-  const criteria = {};
+  const criteria = { communicationStrategy: 0 };
   Object.keys(maxCriteria).forEach((key) => {
     const averagePercent = taskScores.reduce((sum, task) => sum + clamp(task.criteriaPercent?.[key], 0, 100), 0) / totalTasks;
     criteria[key] = Math.round((averagePercent / 100) * maxCriteria[key]);
@@ -312,8 +455,7 @@ function buildSpeakingResultFromTasks(taskScores) {
     criteria.fluencyCoherence +
     criteria.pronunciation +
     criteria.grammar +
-    criteria.vocabulary +
-    criteria.communicationStrategy
+    criteria.vocabulary
   );
   const nonZeroTasks = taskScores.filter((task) => !task.isZero && task.score > 0);
   const weakest = getWeakestCriteria(criteria);
@@ -336,7 +478,7 @@ function buildSpeakingResultFromTasks(taskScores) {
 
 function normalizeTaskScore(sourceTask, score) {
   const criteriaPercent = score.criteriaPercent || {};
-  return {
+  const normalized = {
     id: String(score.id || sourceTask.id || ''),
     score: clamp(score.score, 0, 20),
     transcript: String(score.transcript || ''),
@@ -357,6 +499,72 @@ function normalizeTaskScore(sourceTask, score) {
       communicationStrategy: clamp(criteriaPercent.communicationStrategy, 0, 100)
     }
   };
+  return applyStrictPlacementCaps(sourceTask, normalized);
+}
+
+function applyStrictPlacementCaps(sourceTask, task) {
+  if (!isProductiveSpeakingTask(sourceTask.id || task.id) || task.isZero) return task;
+  const words = wordCount(task.transcript);
+  const criteria = task.criteriaPercent || {};
+  const taskResponse = clamp(criteria.taskResponse, 0, 100);
+  const grammar = clamp(criteria.grammar, 0, 100);
+  const vocabulary = clamp(criteria.vocabulary, 0, 100);
+  let cap = 100;
+  const reasons = [];
+
+  if (words <= 3) {
+    cap = Math.min(cap, 20);
+    reasons.push('jawaban hanya berisi beberapa kata');
+  } else if (words < 8) {
+    cap = Math.min(cap, 35);
+    reasons.push('jawaban masih satu kalimat sangat pendek');
+  } else if (words < 16) {
+    cap = Math.min(cap, 45);
+    reasons.push('jawaban masih terlalu singkat dan detailnya belum cukup');
+  } else if (words < 25) {
+    cap = Math.min(cap, 55);
+    reasons.push('jawaban masih pendek untuk menunjukkan kemampuan speaking yang stabil');
+  }
+
+  if (taskResponse < 20) {
+    cap = Math.min(cap, 25);
+    reasons.push('jawaban belum nyambung dengan instruksi utama');
+  } else if (taskResponse < 30) {
+    cap = Math.min(cap, 35);
+    reasons.push('kesesuaian jawaban dengan soal masih lemah');
+  } else if (taskResponse < 40) {
+    cap = Math.min(cap, 45);
+    reasons.push('isi jawaban belum cukup relevan');
+  } else if (taskResponse < 60) {
+    cap = Math.min(cap, 60);
+    reasons.push('jawaban sudah ada, tapi belum cukup lengkap/relevan untuk skor tinggi');
+  }
+
+  if (words < 25 && (grammar < 45 || vocabulary < 45)) {
+    cap = Math.min(cap, 45);
+    reasons.push('jawaban pendek dengan grammar/vocabulary yang masih sangat basic');
+  }
+
+  const displayed = clamp(task.score, 0, 20) * 5;
+  if (displayed <= cap) return task;
+
+  const ratio = cap / displayed;
+  task.score = Math.round(cap / 5);
+  Object.keys(task.criteriaPercent).forEach((key) => {
+    task.criteriaPercent[key] = Math.round(clamp(task.criteriaPercent[key], 0, 100) * ratio);
+  });
+  const capNote = `Skor dibatasi di ${cap}/100 karena ${reasons.slice(0, 2).join(' dan ')}.`;
+  task.correction = [task.correction, capNote].filter(Boolean).join(' ');
+  task.scoreReason = [task.scoreReason, capNote].filter(Boolean).join(' ');
+  return task;
+}
+
+function isProductiveSpeakingTask(taskId) {
+  return !['SPK-001', 'SPK-002'].includes(String(taskId || ''));
+}
+
+function wordCount(text) {
+  return String(text || '').trim().split(/\s+/).filter((word) => /[A-Za-z]/.test(word)).length;
 }
 
 function zeroTaskScore(task, note) {
@@ -393,15 +601,14 @@ function getWeakestCriteria(criteria) {
 
 function criteriaEntry(criteria, sortFn) {
   const labels = {
-    taskResponse: 'task response',
+    taskResponse: 'content',
     fluencyCoherence: 'fluency',
     pronunciation: 'pronunciation',
     grammar: 'grammar',
-    vocabulary: 'vocabulary',
-    communicationStrategy: 'strategy'
+    vocabulary: 'vocabulary'
   };
   const entries = Object.keys(labels).map((key) => ({ key, label: labels[key], value: Number(criteria[key] || 0) }));
-  return entries.sort(sortFn)[0] || { key: 'taskResponse', label: 'task response', value: 0 };
+  return entries.sort(sortFn)[0] || { key: 'taskResponse', label: 'content', value: 0 };
 }
 
 function normalizeSpeakingScore(score) {
@@ -410,12 +617,12 @@ function normalizeSpeakingScore(score) {
     overallScore: clamp(score.overallScore, 0, 100),
     cefrLevel: String(score.cefrLevel || getLevelName(score.overallScore || 0)),
     criteria: {
-      taskResponse: clamp(criteria.taskResponse, 0, 20),
-      fluencyCoherence: clamp(criteria.fluencyCoherence, 0, 20),
-      pronunciation: clamp(criteria.pronunciation, 0, 20),
-      grammar: clamp(criteria.grammar, 0, 15),
-      vocabulary: clamp(criteria.vocabulary, 0, 15),
-      communicationStrategy: clamp(criteria.communicationStrategy, 0, 10)
+      taskResponse: clamp(criteria.taskResponse, 0, 10),
+      fluencyCoherence: clamp(criteria.fluencyCoherence, 0, 25),
+      pronunciation: clamp(criteria.pronunciation, 0, 25),
+      grammar: clamp(criteria.grammar, 0, 20),
+      vocabulary: clamp(criteria.vocabulary, 0, 20),
+      communicationStrategy: 0
     },
     taskScores: Array.isArray(score.taskScores) ? score.taskScores.map((task) => normalizeTaskScore({ id: task.id }, task)) : [],
     strengths: Array.isArray(score.strengths) ? score.strengths.slice(0, 3) : [],
@@ -429,8 +636,7 @@ function normalizeSpeakingScore(score) {
     normalized.criteria.fluencyCoherence +
     normalized.criteria.pronunciation +
     normalized.criteria.grammar +
-    normalized.criteria.vocabulary +
-    normalized.criteria.communicationStrategy
+    normalized.criteria.vocabulary
   );
   normalized.cefrLevel = getLevelName(normalized.overallScore);
   if (normalized.zeroTasks >= 6 || normalized.overallScore === 0) {
@@ -467,6 +673,7 @@ function saveSpeakingResult(payload) {
   const user = payload.user || {};
   const result = payload.result || {};
   const criteria = result.criteria || {};
+  const artifacts = result.artifacts || {};
   sheet.appendRow([
     new Date(),
     user.name || '',
@@ -484,8 +691,12 @@ function saveSpeakingResult(payload) {
     criteria.vocabulary || 0,
     criteria.communicationStrategy || 0,
     result.zeroTasks || 0,
-    result.teacherNote || ''
+    result.teacherNote || '',
+    artifacts.certificateUrl || '',
+    artifacts.fullReportPdfUrl || '',
+    artifacts.expiresAt || ''
   ]);
+  return { rowNumber: sheet.getLastRow() };
 }
 
 function getSheet() {
