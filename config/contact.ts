@@ -5,8 +5,8 @@ export const contactConfig = {
   whatsappMessage:
     "Hi Bayu, I saw your portfolio and I'd like to talk about a project.",
   email: "hello@bayu.id",
-  linkedin: "https://www.linkedin.com/in/bayu-example",
-  instagram: "https://www.instagram.com/bayu.example",
+  linkedin: "https://www.linkedin.com/in/bayuuuaji",
+  instagram: "https://www.instagram.com/bayuajisnts/",
   youtube: "https://www.youtube.com/@bayu.example",
 };
 
