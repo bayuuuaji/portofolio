@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import type { VideoProject } from "@/types";
@@ -8,10 +9,9 @@ import { publicAsset } from "@/lib/assetPath";
 const youtubeThumbnail = (video: VideoProject) =>
   video.thumbnail
     ? publicAsset(video.thumbnail)
-    :
-  (video.youtubeId
+    : video.youtubeId
     ? `https://i.ytimg.com/vi/${video.youtubeId}/maxresdefault.jpg`
-    : publicAsset("/images/videos/placeholder-16x9-03.svg"));
+    : publicAsset("/images/videos/placeholder-16x9-03.svg");
 
 function getDriveIdFromUrl(url?: string) {
   return url?.match(/\/file\/d\/([^/]+)/)?.[1] ?? url?.match(/[?&]id=([^&]+)/)?.[1];
@@ -25,6 +25,46 @@ const driveThumbnail = (video: VideoProject) => {
     : publicAsset("/images/videos/placeholder-16x9-03.svg");
 };
 
+function SocialThumbnail({
+  video,
+  endpoint,
+}: {
+  video: VideoProject;
+  endpoint: "instagram-thumbnail" | "tiktok-oembed";
+}) {
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+  const socialUrl = endpoint === "instagram-thumbnail" ? video.instagramUrl : video.tiktokUrl;
+
+  useEffect(() => {
+    if (!socialUrl || video.thumbnail) return;
+
+    let isMounted = true;
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+    fetch(`${basePath}/api/${endpoint}?url=${encodeURIComponent(socialUrl)}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (isMounted && data?.thumbnailUrl) {
+          setThumbnail(data.thumbnailUrl);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [endpoint, socialUrl, video.thumbnail]);
+
+  return (
+    <img
+      src={thumbnail ?? youtubeThumbnail(video)}
+      alt={`Thumbnail for ${video.title}`}
+      loading="lazy"
+      className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+    />
+  );
+}
+
 export default function VideoCard({
   video,
   onPlay,
@@ -33,6 +73,8 @@ export default function VideoCard({
   onPlay: (video: VideoProject) => void;
 }) {
   const isPortrait = video.orientation === "portrait";
+  const usesTikTokThumbnail = Boolean(video.tiktokUrl && !video.thumbnail);
+  const usesInstagramThumbnail = Boolean(video.instagramUrl && !video.thumbnail);
   const usesDriveThumbnail = Boolean(video.driveUrl && !video.thumbnail);
   const thumbnailSrc = usesDriveThumbnail
       ? driveThumbnail(video)
@@ -49,18 +91,24 @@ export default function VideoCard({
           isPortrait ? "aspect-[9/16]" : "aspect-video"
         }`}
       >
-        <Image
-          src={thumbnailSrc}
-          alt={`Thumbnail for ${video.title}`}
-          fill
-          loading="lazy"
-          sizes={
-            isPortrait
-              ? "(min-width: 1024px) 220px, (min-width: 640px) 32vw, 45vw"
-              : "(min-width: 1024px) 380px, (min-width: 640px) 45vw, 90vw"
-          }
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-        />
+        {usesTikTokThumbnail ? (
+          <SocialThumbnail video={video} endpoint="tiktok-oembed" />
+        ) : usesInstagramThumbnail ? (
+          <SocialThumbnail video={video} endpoint="instagram-thumbnail" />
+        ) : (
+          <Image
+            src={thumbnailSrc}
+            alt={`Thumbnail for ${video.title}`}
+            fill
+            loading="lazy"
+            sizes={
+              isPortrait
+                ? "(min-width: 1024px) 220px, (min-width: 640px) 32vw, 45vw"
+                : "(min-width: 1024px) 380px, (min-width: 640px) 45vw, 90vw"
+            }
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+          />
+        )}
         <div className="absolute inset-0 flex items-center justify-center bg-navy/0 transition-colors duration-300 group-hover:bg-navy/20">
           <span
             className={`flex items-center justify-center rounded-full bg-white/95 shadow-lift transition-transform duration-300 group-hover:scale-110 ${
