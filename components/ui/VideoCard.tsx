@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Play } from "lucide-react";
 import type { VideoProject } from "@/types";
@@ -23,74 +22,6 @@ const driveThumbnail = (video: VideoProject) => {
     : "/images/videos/placeholder-16x9-03.svg";
 };
 
-function TikTokThumbnail({ video }: { video: VideoProject }) {
-  const [tiktokThumbnail, setTiktokThumbnail] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!video.tiktokUrl || video.thumbnail) return;
-
-    let isMounted = true;
-
-    fetch(`/api/tiktok-oembed?url=${encodeURIComponent(video.tiktokUrl)}`)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (isMounted && data?.thumbnailUrl) {
-          setTiktokThumbnail(data.thumbnailUrl);
-        }
-      })
-      .catch(() => undefined);
-
-    return () => {
-      isMounted = false;
-    };
-  }, [video.thumbnail, video.tiktokUrl]);
-
-  const imageSrc = tiktokThumbnail ?? youtubeThumbnail(video);
-
-  return (
-    <img
-      src={imageSrc}
-      alt={`Thumbnail for ${video.title}`}
-      loading="lazy"
-      className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-    />
-  );
-}
-
-function InstagramThumbnail({ video }: { video: VideoProject }) {
-  const [instagramThumbnail, setInstagramThumbnail] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!video.instagramUrl || video.thumbnail) return;
-
-    let isMounted = true;
-
-    fetch(`/api/instagram-thumbnail?url=${encodeURIComponent(video.instagramUrl)}`)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (isMounted && data?.thumbnailUrl) {
-          setInstagramThumbnail(data.thumbnailUrl);
-        }
-      })
-      .catch(() => undefined);
-
-    return () => {
-      isMounted = false;
-    };
-  }, [video.instagramUrl, video.thumbnail]);
-
-  const imageSrc = instagramThumbnail ?? youtubeThumbnail(video);
-
-  return (
-    <img
-      src={imageSrc}
-      alt={`Thumbnail for ${video.title}`}
-      loading="lazy"
-      className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-    />
-  );
-}
-
 export default function VideoCard({
   video,
   onPlay,
@@ -99,8 +30,6 @@ export default function VideoCard({
   onPlay: (video: VideoProject) => void;
 }) {
   const isPortrait = video.orientation === "portrait";
-  const usesTikTokThumbnail = Boolean(video.tiktokUrl && !video.thumbnail);
-  const usesInstagramThumbnail = Boolean(video.instagramUrl && !video.thumbnail);
   const usesDriveThumbnail = Boolean(video.driveUrl && !video.thumbnail);
   const thumbnailSrc = usesDriveThumbnail
       ? driveThumbnail(video)
@@ -117,24 +46,18 @@ export default function VideoCard({
           isPortrait ? "aspect-[9/16]" : "aspect-video"
         }`}
       >
-        {usesTikTokThumbnail ? (
-          <TikTokThumbnail video={video} />
-        ) : usesInstagramThumbnail ? (
-          <InstagramThumbnail video={video} />
-        ) : (
-          <Image
-            src={thumbnailSrc}
-            alt={`Thumbnail for ${video.title}`}
-            fill
-            loading="lazy"
-            sizes={
-              isPortrait
-                ? "(min-width: 1024px) 220px, (min-width: 640px) 32vw, 45vw"
-                : "(min-width: 1024px) 380px, (min-width: 640px) 45vw, 90vw"
-            }
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-          />
-        )}
+        <Image
+          src={thumbnailSrc}
+          alt={`Thumbnail for ${video.title}`}
+          fill
+          loading="lazy"
+          sizes={
+            isPortrait
+              ? "(min-width: 1024px) 220px, (min-width: 640px) 32vw, 45vw"
+              : "(min-width: 1024px) 380px, (min-width: 640px) 45vw, 90vw"
+          }
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+        />
         <div className="absolute inset-0 flex items-center justify-center bg-navy/0 transition-colors duration-300 group-hover:bg-navy/20">
           <span
             className={`flex items-center justify-center rounded-full bg-white/95 shadow-lift transition-transform duration-300 group-hover:scale-110 ${
