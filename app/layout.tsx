@@ -36,9 +36,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   icons: {
-    icon: publicAsset("/images/logo.png"),
-    shortcut: publicAsset("/images/logo.png"),
-    apple: publicAsset("/images/logo.png"),
+    icon: publicAsset("/images/logo.png?v=20260807"),
+    shortcut: publicAsset("/images/logo.png?v=20260807"),
+    apple: publicAsset("/images/logo.png?v=20260807"),
   },
   openGraph: {
     title: siteConfig.title,
