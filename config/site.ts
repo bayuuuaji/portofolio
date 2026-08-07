@@ -6,8 +6,8 @@ export const siteConfig = {
     "I build content, campaigns, and digital systems that help creative teams grow and work better.",
   brandStatement:
     "I build content, campaigns, and digital systems that help creative teams grow and work better.",
-  url: "https://bayu-portfolio.vercel.app",
-  ogImage: "/images/og-cover.jpg",
+  url: "https://bayuuuaji.github.io/portofolio",
+  ogImage: "https://bayuuuaji.github.io/portofolio/images/og-cover.svg",
   resumeUrl: "/bayu-resume.pdf",
   navLinks: [
     { label: "About", href: "#about" },

@@ -5,6 +5,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import Button from "@/components/ui/Button";
 import { contactConfig, whatsappLink } from "@/config/contact";
+import { publicAsset } from "@/lib/assetPath";
 
 export default function ContactCTA() {
   return (
@@ -56,7 +57,7 @@ export default function ContactCTA() {
             <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
               <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-xl3 border border-line bg-white shadow-soft lg:ml-auto">
                 <Image
-                  src="/images/2.png"
+                  src={publicAsset("/images/2.png")}
                   alt="Portrait of Bayu Aji Santoso"
                   fill
                   sizes="(min-width: 1024px) 36vw, 90vw"

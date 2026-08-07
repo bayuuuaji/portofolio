@@ -4,6 +4,7 @@ import Container from "@/components/ui/Container";
 import SectionHeading from "@/components/ui/SectionHeading";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import { campaigns } from "@/data/campaigns";
+import { publicAsset } from "@/lib/assetPath";
 
 function CampaignProgress({
   participants,
@@ -65,7 +66,7 @@ export default function Campaigns() {
               >
                 <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-xl3 border border-line bg-base-off shadow-soft lg:max-w-none">
                   <Image
-                    src={campaign.poster}
+                    src={publicAsset(campaign.poster)}
                     alt={`Poster campaign ${campaign.title}`}
                     fill
                     loading="lazy"

@@ -6,6 +6,7 @@ import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import Button from "@/components/ui/Button";
 import BrowserMockup from "@/components/ui/BrowserMockup";
 import { digitalSystems } from "@/data/projects";
+import { publicAsset } from "@/lib/assetPath";
 
 export default function DigitalSystems() {
   return (
@@ -29,7 +30,7 @@ export default function DigitalSystems() {
                 >
                   <BrowserMockup url={project.caseStudyUrl} href={project.caseStudyUrl}>
                     <Image
-                      src={project.desktopScreenshot}
+                      src={publicAsset(project.desktopScreenshot)}
                       alt={`Desktop screenshot of ${project.title}`}
                       width={1200}
                       height={750}

@@ -3,12 +3,15 @@
 import Image from "next/image";
 import { Play } from "lucide-react";
 import type { VideoProject } from "@/types";
+import { publicAsset } from "@/lib/assetPath";
 
 const youtubeThumbnail = (video: VideoProject) =>
-  video.thumbnail ??
+  video.thumbnail
+    ? publicAsset(video.thumbnail)
+    :
   (video.youtubeId
     ? `https://i.ytimg.com/vi/${video.youtubeId}/maxresdefault.jpg`
-    : "/images/videos/placeholder-16x9-03.svg");
+    : publicAsset("/images/videos/placeholder-16x9-03.svg"));
 
 function getDriveIdFromUrl(url?: string) {
   return url?.match(/\/file\/d\/([^/]+)/)?.[1] ?? url?.match(/[?&]id=([^&]+)/)?.[1];
@@ -19,7 +22,7 @@ const driveThumbnail = (video: VideoProject) => {
 
   return driveId
     ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`
-    : "/images/videos/placeholder-16x9-03.svg";
+    : publicAsset("/images/videos/placeholder-16x9-03.svg");
 };
 
 export default function VideoCard({

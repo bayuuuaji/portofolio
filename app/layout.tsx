@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
 import { siteConfig } from "@/config/site";
+import { publicAsset } from "@/lib/assetPath";
 
 const displayFont = Manrope({
   subsets: ["latin"],
@@ -35,16 +36,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   icons: {
-    icon: "/images/logo.png",
-    shortcut: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: publicAsset("/images/logo.png"),
+    shortcut: publicAsset("/images/logo.png"),
+    apple: publicAsset("/images/logo.png"),
   },
   openGraph: {
     title: siteConfig.title,
     description: siteConfig.description,
     url: siteConfig.url,
     siteName: siteConfig.name,
-    images: [{ url: siteConfig.ogImage, width: 1200, height: 630 }],
+    images: [{ url: publicAsset(siteConfig.ogImage), width: 1200, height: 630 }],
     locale: "en_US",
     type: "website",
   },
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
-    images: [siteConfig.ogImage],
+    images: [publicAsset(siteConfig.ogImage)],
   },
 };
 

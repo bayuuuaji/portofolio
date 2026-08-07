@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
+import { publicAsset } from "@/lib/assetPath";
 
 const stats = [
   { value: 95, suffix: "%", label: "Overtime Reduced" },
@@ -15,7 +16,7 @@ const stats = [
 const highlight =
   "portfolio-highlight";
 
-const portraitSrc = "/images/1.png?v=20260721";
+const portraitSrc = publicAsset("/images/1.png?v=20260721");
 
 export default function Hero() {
   const shouldReduceMotion = useReducedMotion();

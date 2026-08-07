@@ -3,6 +3,7 @@ import Container from "@/components/ui/Container";
 import SectionHeading from "@/components/ui/SectionHeading";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import Badge from "@/components/ui/Badge";
+import { publicAsset } from "@/lib/assetPath";
 
 const careerPath = [
   "Social Media Officer",
@@ -62,7 +63,7 @@ export default function About() {
           <RevealOnScroll delay={0.1}>
             <div className="relative mx-auto max-w-md overflow-hidden rounded-xl3 border border-line bg-white shadow-soft lg:max-w-none">
               <Image
-                src="/images/1.png"
+                src={publicAsset("/images/1.png")}
                 alt="Bayu working with the creative team on set"
                 width={900}
                 height={1100}
